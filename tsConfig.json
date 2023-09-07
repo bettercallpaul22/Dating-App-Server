@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module":"NodeNext", // module name for module compilation mode (default module is "Node 
+        "moduleResolution":"NodeNext", // need to resolve module resolution first 
+        "baseUrl":"src", 
+        "outDir":"dist", // output
+        "sourceMap":true,  // source 
+        "noImplicitAny":true,  //allows implicit any
+    },
+    "include":["src/**/*", "src/index.ts"], // need to include src files first 
+    "exclude":["dist", "node_modules", "test"], // exclude modules to exclude from compilation mode 
+}
