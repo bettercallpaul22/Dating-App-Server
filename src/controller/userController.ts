@@ -49,16 +49,45 @@ export const getMe = async (req: Request, res: Response) => {
 // Update Profile
 export const update = async (req: any, res: Response) => {
     try {
-        const { error } = updateSchema.validate({firstName:req.body.firstName, lastName:req.body.lastName});
+        const { error } = updateSchema.validate({ firstName: req.body.firstName, lastName: req.body.lastName });
         if (error) return res.status(400).json(error.details[0].message);
-        if(req.params.id !== req.user._id) return res.status(401).json('You are not allowed to update this user')
+        if (req.params.id !== req.user._id) return res.status(401).json('You are not allowed to update this user')
         const user = await UserModel.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true }
         )
         await user.save();
-        return res.status(200).json({success:true});
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json(error.message);
+    }
+}
+
+
+// Follow User
+export const followUser = async (req: Request, res: Response) => {
+    const { friendId, myId } = req.body
+    try {
+        const user = await UserModel.findById({ _id: friendId })
+        const myProfile = await UserModel.findById({ _id: myId })
+        if (!user) return res.status(404).json('user not found')
+        if (!myProfile) return res.status(404).json('user not found')
+        if (user.followers.includes(myId)) {
+           const updatedFollowers:string[] = user.followers.filter((u) => u !== myId)
+           const updatedFollowing:string[] = myProfile.following.filter((u) => u !== friendId)
+             user.followers = updatedFollowers
+             myProfile.following = updatedFollowing
+             await user.save()
+             await myProfile.save()
+            res.status(200).json(myProfile)
+        } else {
+            user.followers.push(myId)
+            myProfile.following.push(friendId)
+            await user.save()
+            await myProfile.save()
+            res.status(200).json(myProfile)
+        }
     } catch (error) {
         res.status(500).json(error.message);
     }
@@ -69,11 +98,11 @@ export const update = async (req: any, res: Response) => {
 
 // Delete Profile
 export const remove = async (req: any, res: Response) => {
-console.log(req.user._id)
+    console.log(req.user._id)
     try {
-        if(req.user._id !== req.params.id){
+        if (req.user._id !== req.params.id) {
             res.status(401).json("you are not allowed to delete this user")
-        }else{
+        } else {
             return res.status(200).json("user deleted successfully");
 
         }

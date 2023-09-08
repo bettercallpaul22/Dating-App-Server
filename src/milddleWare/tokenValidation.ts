@@ -28,7 +28,7 @@ export const createAccessToken = (user: any) => {
         email: user.email,
         username: user.userName,
         status: user.status,
-    }, process.env.TOKEN_SECRET, { expiresIn: '10s' })
+    }, process.env.TOKEN_SECRET, { expiresIn: '10m' })
 
     return accessToken
 }
