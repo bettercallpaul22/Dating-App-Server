@@ -45,25 +45,47 @@ let onlineUsers: any[] = []
 
 io.on('connection', (socket) => {
     // on connection
-    console.log(`this id connected ${socket.id}`)
+    // console.log(`this id connected ${socket.id}`)
     io.emit('connection', socket.id)
     socket.on('addUser', (userId) => {
-        console.log('user to push ', userId, socket.id)
+        // console.log('user to push ', userId, socket.id)
         !onlineUsers.some((user: any) => user.userId === userId) &&
             onlineUsers.push({
                 userId,
                 socketId: socket.id
             })
-     
+
         io.emit('onlineUsers', onlineUsers)
-        console.log('onlineUsers after add', onlineUsers)
+        // console.log('onlineUsers after add', onlineUsers)
+    })
+
+    // Listening to message
+    socket.on('message', (data: Message) => {
+        const user = onlineUsers.find((user: any) => user.userId === data.receipientId)
+        if (!user) return
+        io.to(user.socketId).emit("message", data)
+
+    })
+
+    socket.on('on-typing', (data: Message) => {
+        const user = onlineUsers.find((user: any) => user.userId === data.receipientId)
+        if (!user) return
+        io.to(user.socketId).emit("on-typing", data)
+
+    })
+
+    socket.on('stop-typing', (data: Message) => {
+        const user = onlineUsers.find((user: any) => user.userId === data.receipientId)
+        if (!user) return
+        io.to(user.socketId).emit("stop-typing", data)
+
     })
 
 
+
+
     socket.on('disconnect', () => {
-        console.log(`This user left ${socket.id}`)
         const res = onlineUsers.filter((user: any) => user.socketId !== socket.id)
-        console.log(` online users`, res)
         io.emit('removeUser', res)
 
     })
