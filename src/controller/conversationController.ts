@@ -1,15 +1,20 @@
 import { Request, Response } from "express"
 import Conversation from "../schema/conversationModel"
+import { UserModel } from "../schema/userModel";
 
 
-
+// Create a new Conversation
 export const createConversation = async (req: Request, res: Response) => {
-    const newConversation = new Conversation({
-        members: [req.body.senderId, req.body.receiverId]
-    })
+const {senderId, receiverId} = req.body;
 
     try {
-        
+        const sender = await UserModel.findById({_id: senderId})
+        const receiver = await UserModel.findById({_id: receiverId})
+        if(!sender || !receiver) return  res.status(404).json('users not found');
+        const newConversation = new Conversation({
+            friend: receiver,
+            members: [senderId, receiverId]
+        })
         const chat = await newConversation.save()
         res.status(201).json(chat)
     } catch (error) {
@@ -17,7 +22,7 @@ export const createConversation = async (req: Request, res: Response) => {
     }
 }
 
-
+// Find user conversation
 export const userConversation = async (req: Request, res: Response) => {
     try {
         //find the chat of a member, one member can have multiple chat with diff persons
